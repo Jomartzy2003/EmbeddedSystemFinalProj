@@ -15,59 +15,50 @@
 #define PARKING_SWITCH_ID "6a09544abaa50bf9bf358723"
 
 // --- Hardware Pin Definitions ---
-#define RELAY_CASA_PIN    23  // Controls the Relay (12V Bulb + 12V Exhaust Fan)
-#define SERVO_GATE_PIN    18  // Controls the Parking Arm Gate
+#define RELAY_CASA_PIN    23 
+#define SERVO_GATE_PIN    18  
 
 // --- Object Instances ---
 Servo parkingServo;
 
 // --- Servo Angles ---
-const int GATE_CLOSE_ANGLE = 0;   // Angle when gate is down (Adjust if needed)
-const int GATE_OPEN_ANGLE  = 90;  // Angle when gate is up (Adjust if needed)
+const int GATE_CLOSE_ANGLE = 0;   
+const int GATE_OPEN_ANGLE  = 90;  
 
-// ==========================================
-//   Sinric Pro Callback: Casa Control
-// ==========================================
 bool onCasaStateChange(const String &deviceId, bool &state) {
   Serial.printf("Casa Device %s turned %s\r\n", deviceId.c_str(), state ? "ON" : "OFF");
   
   if (state) {
-    digitalWrite(RELAY_CASA_PIN, HIGH); // Turns ON Bulb & Fan together
+    digitalWrite(RELAY_CASA_PIN, HIGH); 
   } else {
-    digitalWrite(RELAY_CASA_PIN, LOW);  // Turns OFF Bulb & Fan together
+    digitalWrite(RELAY_CASA_PIN, LOW); 
   }
   return true; 
 }
 
-// ==========================================
-//   Sinric Pro Callback: Parking Control
-// ==========================================
 bool onParkingStateChange(const String &deviceId, bool &state) {
   Serial.printf("Parking Device %s turned %s\r\n", deviceId.c_str(), state ? "OPEN" : "CLOSE");
   
   if (state) {
-    parkingServo.write(GATE_OPEN_ANGLE);  // Command servo to open angle
+    parkingServo.write(GATE_OPEN_ANGLE);  
   } else {
-    parkingServo.write(GATE_CLOSE_ANGLE); // Command servo to close angle
+    parkingServo.write(GATE_CLOSE_ANGLE); 
   }
   return true; 
 }
 
-// ==========================================
-//   Setup
-// ==========================================
 void setup() {
   Serial.begin(115200);
   
   // Initialize Pins
   pinMode(RELAY_CASA_PIN, OUTPUT);
-  digitalWrite(RELAY_CASA_PIN, LOW); // Default OFF
+  digitalWrite(RELAY_CASA_PIN, LOW); 
   
   // Attach Servo
-  ESP32PWM::allocateTimer(0); // Required for ESP32Servo library
+  ESP32PWM::allocateTimer(0); 
   parkingServo.setPeriodHertz(50); 
   parkingServo.attach(SERVO_GATE_PIN, 500, 2400);
-  parkingServo.write(GATE_CLOSE_ANGLE); // Default gate to closed on startup
+  parkingServo.write(GATE_CLOSE_ANGLE);
 
   // Connect to Wi-Fi
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -89,9 +80,6 @@ void setup() {
   SinricPro.begin(APP_KEY, APP_SECRET);
 }
 
-// ==========================================
-//   Main Loop
-// ==========================================
 void loop() {
   SinricPro.handle(); // Keeps connection active
 }
